@@ -144,6 +144,7 @@ export function Footer() {
             <Link to="/process">Our process</Link>
             <Link to="/demos">Demo projects</Link>
             <Link to="/faq">Common questions</Link>
+            <Link to="/insights">Software & AI guides</Link>
           </div>
           <div className="footer-group">
             <h2>Expertise</h2>
