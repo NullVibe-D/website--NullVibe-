@@ -179,10 +179,50 @@ export const demos = [
     text: "A faster first response, with people in the loop.",
   },
 ];
+export const insightArticles = [
+  {
+    slug: "plan-a-custom-software-project",
+    title: "How to Plan a Custom Software Project",
+    description:
+      "A practical guide to defining the problem, mapping users, prioritising features, planning integrations and preparing a custom software project for delivery.",
+    category: "CUSTOM SOFTWARE",
+    readTime: "7 min read",
+    published: "2026-11-02",
+    publishedLabel: "2 November 2026",
+    keywords: ["custom software project planning", "software requirements", "project scope", "software development brief"],
+  },
+  {
+    slug: "custom-software-vs-off-the-shelf",
+    title: "Custom Software vs Off-the-Shelf: How to Choose",
+    description:
+      "Compare custom software with ready-made products by workflow fit, integrations, control, total cost and long-term ownership. Includes a decision checklist.",
+    category: "SOFTWARE STRATEGY",
+    readTime: "6 min read",
+    published: "2026-11-02",
+    publishedLabel: "2 November 2026",
+    keywords: ["custom software vs off the shelf", "buy vs build software", "business software decision"],
+  },
+  {
+    slug: "where-ai-automation-helps",
+    title: "Where AI Automation Helps a Business (and Where It Doesn't)",
+    description:
+      "A grounded guide to choosing an AI workflow, checking data readiness, measuring a pilot, keeping human oversight and monitoring quality after launch.",
+    category: "AI & AUTOMATION",
+    readTime: "7 min read",
+    published: "2026-11-02",
+    publishedLabel: "2 November 2026",
+    keywords: ["AI automation for business", "business workflow automation", "AI pilot", "human oversight"],
+  },
+];
 export const contactEmail =
   import.meta.env.VITE_CONTACT_EMAIL || "contact@nullvibe.tech";
 export const bookingUrl = import.meta.env.VITE_BOOKING_URL || "";
 export const basePages = {
+  "/insights": {
+    title: "Software & AI Development Guides",
+    description:
+      "Practical guides from NullVibe on planning custom software, comparing build-versus-buy options and choosing responsible AI automation for business workflows.",
+  },
   "/": {
     title: "Custom Software Development Studio",
     description:
@@ -284,6 +324,8 @@ export function getPageMeta(path) {
   if (service) return serviceMeta[service.slug];
   const demo = demos.find((item) => path === "/demos/" + item.slug);
   if (demo) return demoMeta[demo.slug];
+  const insight = insightArticles.find((item) => path === "/insights/" + item.slug);
+  if (insight) return insight;
   return {
     title: "Page not found",
     description: "The requested page could not be found.",
@@ -294,4 +336,5 @@ export const routes = [
   ...Object.keys(basePages),
   ...services.map((s) => "/services/" + s.slug),
   ...demos.map((d) => "/demos/" + d.slug),
+  ...insightArticles.map((article) => "/insights/" + article.slug),
 ];
