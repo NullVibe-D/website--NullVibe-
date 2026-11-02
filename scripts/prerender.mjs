@@ -20,7 +20,8 @@ const vite = await createServer({
 });
 try {
   const { App } = await vite.ssrLoadModule("/src/App.jsx");
-  const { routes, getPageMeta } = await vite.ssrLoadModule("/src/data.js");
+  const { routes, getPageMeta, services } = await vite.ssrLoadModule("/src/data.js");
+  const { faqItems } = await vite.ssrLoadModule("/src/CompanyPages.jsx");
   const template = await readFile("dist/client/index.html", "utf8");
   const escape = (s) =>
     s
@@ -47,12 +48,131 @@ try {
       /(<meta\s+property="og:description"\s+content=")[^"]*("\s*\/?>)/,
       `$1${escape(meta.description)}$2`,
     );
+    const canonical = origin + (route === "/" ? "/" : route);
     const extra = meta.notFound
       ? '<meta name="robots" content="noindex,follow" />'
-      : `<link rel="canonical" href="${origin}${route === "/" ? "/" : route}" /><meta property="og:url" content="${origin}${route}" />`;
-    const social = `<meta property="og:image" content="${origin}/images/hero-logo.webp" /><meta name="twitter:card" content="summary_large_image" />`;
-    const organization = JSON.stringify({"@context":"https://schema.org","@type":"Organization",name:"NullVibe",url:origin,email:"contact@nullvibe.tech",logo:`${origin}/images/logo-original.png`}).replaceAll('<','\\u003c');
-    html = html.replace("</head>", `${extra}${social}<script type="application/ld+json">${organization}</script>\n</head>`);
+      : `<link rel="canonical" href="${canonical}" /><meta property="og:url" content="${canonical}" /><meta name="robots" content="index,follow,max-image-preview:large" />`;
+    const social = meta.notFound ? "" : [
+      '<meta property="og:site_name" content="NullVibe" />',
+      '<meta property="og:locale" content="en_US" />',
+      '<meta property="og:image" content="' + origin + '/images/hero-logo.webp" />',
+      '<meta property="og:image:width" content="1200" />',
+      '<meta property="og:image:height" content="942" />',
+      '<meta property="og:image:alt" content="NullVibe chrome emblem with a crimson edge" />',
+      '<meta name="twitter:card" content="summary_large_image" />',
+      '<meta name="twitter:title" content="' + escape(meta.title + " | NullVibe") + '" />',
+      '<meta name="twitter:description" content="' + escape(meta.description) + '" />',
+      '<meta name="twitter:image" content="' + origin + '/images/hero-logo.webp" />',
+      '<meta name="author" content="NullVibe" />'
+    ].join("");
+    const organizationId = origin + "/#organization";
+    const graph = [
+      {
+        "@type": "Organization",
+        "@id": organizationId,
+        name: "NullVibe",
+        description: "Custom software development studio building web applications, mobile apps, business websites and practical AI automation.",
+        url: origin,
+        email: "contact@nullvibe.tech",
+        logo: { "@type": "ImageObject", url: origin + "/images/logo-original.png" },
+        knowsAbout: [
+          "Custom software development",
+          "Web application development",
+          "Mobile app development",
+          "AI automation",
+          "E-commerce development",
+          "Business software integration"
+        ],
+        contactPoint: [{
+          "@type": "ContactPoint",
+          contactType: "sales",
+          email: "contact@nullvibe.tech"
+        }]
+      },
+      {
+        "@type": "WebSite",
+        "@id": origin + "/#website",
+        name: "NullVibe",
+        url: origin,
+        publisher: { "@id": organizationId },
+        inLanguage: "en"
+      },
+      {
+        "@type": "WebPage",
+        "@id": canonical + "#webpage",
+        url: canonical,
+        name: meta.title + " | NullVibe",
+        description: meta.description,
+        isPartOf: { "@id": origin + "/#website" },
+        about: { "@id": organizationId },
+        primaryImageOfPage: {
+          "@type": "ImageObject",
+          url: origin + "/images/hero-logo.webp",
+          width: 1200,
+          height: 942
+        },
+        inLanguage: "en"
+      }
+    ];
+    if (route !== "/") {
+      const parts = route.split("/").filter(Boolean);
+      const items = [{
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: origin + "/"
+      }];
+      let current = "";
+      for (const part of parts) {
+        current += "/" + part;
+        const service = services.find((item) => current === "/services/" + item.slug);
+        const name = current === "/services" ? "Services"
+          : current === "/demos" ? "Demos"
+          : service ? service.title
+          : getPageMeta(current).title;
+        items.push({
+          "@type": "ListItem",
+          position: items.length + 1,
+          name,
+          item: origin + current
+        });
+      }
+      graph.push({
+        "@type": "BreadcrumbList",
+        "@id": canonical + "#breadcrumb",
+        itemListElement: items
+      });
+    }
+    const service = services.find((item) => route === "/services/" + item.slug);
+    if (service) {
+      graph.push({
+        "@type": "Service",
+        "@id": canonical + "#service",
+        name: service.title,
+        serviceType: service.title,
+        description: meta.description,
+        url: canonical,
+        provider: { "@id": organizationId }
+      });
+    }
+    if (route === "/faq") {
+      graph.push({
+        "@type": "FAQPage",
+        "@id": canonical + "#faq",
+        url: canonical,
+        mainEntity: faqItems.map(({ q, a }) => ({
+          "@type": "Question",
+          name: q,
+          acceptedAnswer: { "@type": "Answer", text: a }
+        }))
+      });
+    }
+    const structuredData = meta.notFound ? "" :
+      '<script type="application/ld+json">' +
+      JSON.stringify({ "@context": "https://schema.org", "@graph": graph })
+        .replace(/</g, "\\u003c") +
+      "</script>";
+    html = html.replace("</head>", extra + social + structuredData + "\n</head>");
     html = html.replace(
       '<div id="root"></div>',
       `<div id="root">${renderToString(React.createElement(App, { path: route }))}</div>`,
