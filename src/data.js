@@ -184,7 +184,7 @@ export const contactEmail =
 export const bookingUrl = import.meta.env.VITE_BOOKING_URL || "";
 export const basePages = {
   "/": {
-    title: "NullVibe | Custom Software Development Studio",
+    title: "Custom Software Development Studio",
     description:
       "NullVibe is a custom software development studio building web apps, mobile apps, business websites and practical AI automation for businesses. Explore our services and demos.",
   },
@@ -204,12 +204,12 @@ export const basePages = {
       "Explore NullVibe's interactive booking platform, commerce experience and AI support assistant demos. Try sample workflows built to illustrate product ideas.",
   },
   "/about": {
-    title: "About NullVibe | Software Development Studio",
+    title: "About the Studio",
     description:
       "Learn about NullVibe's approach to custom software, web and mobile applications, business websites and practical AI automation.",
   },
   "/contact": {
-    title: "Contact NullVibe | Start a Software Project",
+    title: "Start a Software Project",
     description:
       "Talk with NullVibe about custom software development, a web application, mobile app, business website or AI automation project.",
   },
@@ -219,7 +219,7 @@ export const basePages = {
       "Arrange an initial conversation with NullVibe about your business goals, software requirements, project scope and practical next steps.",
   },
   "/privacy": {
-    title: "Privacy Policy | NullVibe",
+    title: "Privacy Policy",
     description:
       "Read the NullVibe privacy policy and learn how website enquiries, personal information and demonstration data are handled.",
   },
