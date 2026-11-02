@@ -20,7 +20,7 @@ const vite = await createServer({
 });
 try {
   const { App } = await vite.ssrLoadModule("/src/App.jsx");
-  const { routes, getPageMeta, services } = await vite.ssrLoadModule("/src/data.js");
+  const { routes, getPageMeta, services, insightArticles } = await vite.ssrLoadModule("/src/data.js");
   const { faqItems } = await vite.ssrLoadModule("/src/CompanyPages.jsx");
   const template = await readFile("dist/client/index.html", "utf8");
   const escape = (s) =>
@@ -153,6 +153,24 @@ try {
         description: meta.description,
         url: canonical,
         provider: { "@id": organizationId }
+      });
+    }
+    const insight = insightArticles.find((item) => route === "/insights/" + item.slug);
+    if (insight) {
+      graph.push({
+        "@type": "Article",
+        "@id": canonical + "#article",
+        headline: insight.title,
+        description: insight.description,
+        datePublished: insight.published,
+        dateModified: insight.published,
+        author: { "@id": organizationId },
+        publisher: { "@id": organizationId },
+        mainEntityOfPage: { "@id": canonical + "#webpage" },
+        image: [origin + "/images/hero-logo.webp"],
+        articleSection: insight.category,
+        keywords: insight.keywords,
+        inLanguage: "en"
       });
     }
     if (route === "/faq") {
