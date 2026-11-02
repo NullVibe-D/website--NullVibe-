@@ -54,8 +54,9 @@ export function Home() {
             progress<span className="red">.</span>
           </h1>
           <p>
-            Custom web applications, mobile experiences and practical AI.
-            Thoughtfully built to help your business work better and grow.
+            NullVibe is a custom software development studio. We design and build
+            web applications, mobile apps, business websites and practical AI
+            automation around real business workflows and customer needs.
           </p>
           <div className="actions">
             <Button to="/contact">Discuss your project</Button>
@@ -261,8 +262,8 @@ export function Services() {
     <>
       <PageHero
         label="OUR EXPERTISE"
-        title="The right technology. For your next step"
-        text="Custom software, considered design and practical AI—connected by one purpose: helping your business move forward."
+        title="Custom software development services"
+        text="Explore web application development, mobile apps, AI automation, business websites, e-commerce and connected business systems from NullVibe."
       />
       <section className="shell services-grid">
         {services.map((s, i) => {
@@ -321,13 +322,25 @@ export function Services() {
     </>
   );
 }
+const serviceHeadings = {
+  "web-applications": "Custom web application development",
+  "mobile-applications": "Mobile app development for iOS and Android",
+  "ai-automation": "AI automation for business workflows",
+  "websites-commerce": "Business website and e-commerce development",
+  "business-systems": "Business software and system integration",
+  "support-evolution": "Software maintenance and ongoing development",
+};
 export function ServiceDetail({ slug }) {
   const s = services.find((item) => item.slug === slug);
   if (!s) return <NotFound />;
   const Icon = icons[s.icon];
   return (
     <>
-      <PageHero label={s.category} title={s.title} text={s.detail}>
+      <PageHero
+        label={s.category}
+        title={serviceHeadings[slug] || s.title}
+        text={s.detail}
+      >
         <div className="actions">
           <Button to={"/contact?service=" + encodeURIComponent(s.title)}>
             Discuss your project
