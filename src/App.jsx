@@ -4,6 +4,7 @@ import { Home, Services, ServiceDetail } from "./MarketingPages.jsx";
 import { Demos, DemoDetail } from "./Demos.jsx";
 import { About, Process, Privacy, FAQ } from "./CompanyPages.jsx";
 import { Contact, Booking } from "./ContactPages.jsx";
+import { InsightsIndex, InsightDetail } from "./InsightsPages.jsx";
 import { getPageMeta } from "./data.js";
 
 export function App({ path = "/" }) {
@@ -11,6 +12,7 @@ export function App({ path = "/" }) {
   const pages = {
     "/": <Home />,
     "/services": <Services />,
+    "/insights": <InsightsIndex />,
     "/process": <Process />,
     "/demos": <Demos />,
     "/about": <About />,
@@ -24,6 +26,8 @@ export function App({ path = "/" }) {
     content = <ServiceDetail slug={normalized.split("/")[2]} />;
   if (!content && normalized.startsWith("/demos/"))
     content = <DemoDetail slug={normalized.split("/")[2]} />;
+  if (!content && normalized.startsWith("/insights/"))
+    content = <InsightDetail slug={normalized.split("/")[2]} />;
   if (getPageMeta(normalized).notFound) content = <NotFound />;
   return (
     <>
