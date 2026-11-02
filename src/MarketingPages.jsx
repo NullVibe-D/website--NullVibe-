@@ -47,11 +47,11 @@ export function Home() {
         <div className="hero-copy">
           <Eyebrow>SOFTWARE WITH A BUSINESS PURPOSE</Eyebrow>
           <h1>
-            Built for business.
+            Custom software.
             <br />
-            <span className="tone">Designed for</span>
+            <span className="tone">Built for</span>
             <br />
-            progress<span className="red">.</span>
+            business<span className="red">.</span>
           </h1>
           <p>
             NullVibe is a custom software development studio. We design and build
