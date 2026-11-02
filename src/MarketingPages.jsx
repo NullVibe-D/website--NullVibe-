@@ -253,6 +253,16 @@ export function Home() {
           </div>
         </div>
       </section>
+      <section className="shell section insights-promo" aria-labelledby="insights-promo-title">
+        <div>
+          <Eyebrow>IDEAS BEFORE INVESTMENT</Eyebrow>
+          <h2 id="insights-promo-title">Make the next software decision with confidence.</h2>
+          <p>Practical guides to planning custom software, choosing the right approach and using AI responsibly.</p>
+        </div>
+        <Link to="/insights" className="text-link">
+          Explore software and AI guides <ArrowRight />
+        </Link>
+      </section>
       <CTA />
     </>
   );
