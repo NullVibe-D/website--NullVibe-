@@ -184,66 +184,106 @@ export const contactEmail =
 export const bookingUrl = import.meta.env.VITE_BOOKING_URL || "";
 export const basePages = {
   "/": {
-    title: "Custom software, mobile apps & AI for business",
+    title: "NullVibe | Custom Software Development Studio",
     description:
-      "NullVibe builds custom web applications, mobile apps and practical AI solutions. Clear scope, thoughtful design and fair pricing for your next stage of growth.",
+      "NullVibe is a custom software development studio building web apps, mobile apps, business websites and practical AI automation for businesses. Explore our services and demos.",
   },
   "/services": {
-    title: "Software development services",
+    title: "Custom Software Development Services",
     description:
-      "Explore custom web and mobile development, AI automation, websites, business systems and software support from NullVibe.",
+      "Explore custom web application development, mobile app development, AI automation, business websites, e-commerce and software support from NullVibe.",
   },
   "/process": {
-    title: "Our process — from discovery to launch",
+    title: "Our Software Development Process",
     description:
-      "How NullVibe plans, designs, builds and improves business software, with clear scope and practical milestones.",
+      "See how NullVibe discovers requirements, plans scope, designs interfaces, builds and tests software, then prepares a clear handover and ongoing support plan.",
   },
   "/demos": {
-    title: "Interactive software demos",
+    title: "Interactive Web App & Software Demos",
     description:
-      "Explore NullVibe demonstration concepts for booking, commerce and customer support. Try working interactions with sample data.",
+      "Explore NullVibe's interactive booking platform, commerce experience and AI support assistant demos. Try sample workflows built to illustrate product ideas.",
   },
   "/about": {
-    title: "About NullVibe",
+    title: "About NullVibe | Software Development Studio",
     description:
-      "A software partner focused on useful technology, clear communication and fair value for growing businesses.",
+      "Learn about NullVibe's approach to custom software, web and mobile applications, business websites and practical AI automation.",
   },
   "/contact": {
-    title: "Discuss your project",
+    title: "Contact NullVibe | Start a Software Project",
     description:
-      "Tell NullVibe about your business, your project and what you want to achieve. Contact contact@nullvibe.tech.",
+      "Talk with NullVibe about custom software development, a web application, mobile app, business website or AI automation project.",
   },
   "/booking": {
-    title: "Book a discovery call",
+    title: "Book a Software Project Discovery Call",
     description:
-      "Start a conversation about your business goals, software requirements and a practical next step.",
+      "Arrange an initial conversation with NullVibe about your business goals, software requirements, project scope and practical next steps.",
   },
   "/privacy": {
-    title: "Privacy",
+    title: "Privacy Policy | NullVibe",
     description:
-      "How NullVibe handles website enquiries, demonstration data and external booking links.",
+      "Read the NullVibe privacy policy and learn how website enquiries, personal information and demonstration data are handled.",
   },
   "/faq": {
-    title: "Frequently asked questions",
+    title: "Custom Software Development FAQs",
     description:
-      "Answers about scope, pricing, software delivery, AI, ownership and ongoing support.",
+      "Answers to common questions about custom software, app development, AI automation, project pricing, delivery timelines, ownership and support.",
+  },
+};
+const serviceMeta = {
+  "web-applications": {
+    title: "Custom Web Application Development",
+    description:
+      "NullVibe designs custom web applications for customer portals, booking and scheduling platforms, SaaS products, dashboards and internal business workflows.",
+  },
+  "mobile-applications": {
+    title: "Mobile App Development for iOS & Android",
+    description:
+      "Plan and build mobile applications for iOS and Android, from customer-facing apps and booking experiences to field-team tools and connected services.",
+  },
+  "ai-automation": {
+    title: "AI Automation for Business Workflows",
+    description:
+      "Explore practical AI automation for customer support, internal knowledge search, document processing and repetitive business workflows, with human review.",
+  },
+  "websites-commerce": {
+    title: "Business Website & E-commerce Development",
+    description:
+      "NullVibe builds responsive business websites, service pages, online stores and product catalogues with clear content, customer journeys and search foundations.",
+  },
+  "business-systems": {
+    title: "Business Software & System Integration",
+    description:
+      "Connect business tools and data with tailored internal software, operations dashboards, customer-management workflows and third-party API integrations.",
+  },
+  "support-evolution": {
+    title: "Software Maintenance & Development Support",
+    description:
+      "Improve existing software with application maintenance, performance work, new features, integrations and a clear plan for ongoing development.",
+  },
+};
+const demoMeta = {
+  booking: {
+    title: "Booking Platform Demo",
+    description:
+      "Try a sample booking and scheduling platform concept, with an interactive customer flow created by NullVibe for demonstration purposes.",
+  },
+  commerce: {
+    title: "E-commerce Platform Demo",
+    description:
+      "Explore a sample online shopping experience with product discovery and cart interactions. This is a demonstration concept by NullVibe.",
+  },
+  assistant: {
+    title: "AI Customer Support Assistant Demo",
+    description:
+      "Try a sample AI customer-support assistant and see how a guided first response can work with people kept in the loop.",
   },
 };
 export function getPageMeta(path) {
   if (basePages[path]) return basePages[path];
-  const service = services.find((s) => path === "/services/" + s.slug);
-  if (service)
-    return {
-      title: service.title + " development",
-      description: service.detail,
-    };
-  const demo = demos.find((d) => path === "/demos/" + d.slug);
-  if (demo)
-    return {
-      title: demo.title + " demo",
-      description:
-        demo.text + " An interactive demonstration concept from NullVibe.",
-    };
+  const service = services.find((item) => path === "/services/" + item.slug);
+  if (service) return serviceMeta[service.slug];
+  const demo = demos.find((item) => path === "/demos/" + item.slug);
+  if (demo) return demoMeta[demo.slug];
   return {
     title: "Page not found",
     description: "The requested page could not be found.",
