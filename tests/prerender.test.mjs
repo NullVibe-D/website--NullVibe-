@@ -6,7 +6,7 @@ const base=path.resolve('dist/client');
 test('all canonical routes have unique prerendered content and metadata',async()=>{
  const sitemap=await readFile(path.join(base,'sitemap.xml'),'utf8');
  const urls=[...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map(m=>m[1]);
- assert.equal(urls.length,18);
+ assert.equal(urls.length,22);
  const titles=new Set();const descriptions=new Set();
  for(const url of urls){
   const route=new URL(url).pathname;const html=await readFile(path.join(base,route,'index.html'),'utf8');
@@ -15,7 +15,7 @@ test('all canonical routes have unique prerendered content and metadata',async()
   const description=html.match(/name="description"\s+content="([^"]+)"/)?.[1];assert.ok(description?.length>30,route+' description');descriptions.add(description);
   assert.ok(html.includes(`rel="canonical" href="${url}"`),route+' canonical');assert.match(html,/application\/ld\+json/);
  }
- assert.equal(titles.size,18);assert.equal(descriptions.size,18);
+ assert.equal(titles.size,22);assert.equal(descriptions.size,22);
 });
 test('404 is nonindexable and crawl resources refer to the public domain',async()=>{
  const notFound=await readFile(path.join(base,'404.html'),'utf8');assert.match(notFound,/noindex,follow/);assert.match(notFound,/back on track/);
