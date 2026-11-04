@@ -1,0 +1,22 @@
+SOFTWARE PROJECT BRIEF | NullVibe
+Copy this outline. One or two sentences per field is enough to start.
+
+1. Problem: Who is affected, what do they do today, and what goes wrong?
+
+2. Outcome: What should improve? What baseline can we record now?
+
+3. Workflow: Who starts the task? Who approves it? What happens on failure?
+
+4. First release: What is the smallest useful journey a user must finish?
+
+5. Out of scope: Which useful features can wait?
+
+6. Data: Which tools, records, permissions or offline needs matter?
+
+7. Acceptance: Describe one normal example and one edge case.
+   What outcome should each produce?
+
+8. Delivery: Budget range, deadline and reason, decision maker,
+   maintenance owner and unresolved questions.
+
+Guide: https://nullvibe.tech/insights/plan-a-custom-software-project#project-brief

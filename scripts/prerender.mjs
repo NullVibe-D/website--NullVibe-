@@ -50,10 +50,11 @@ try {
       .replaceAll(">", "&gt;");
   for (const route of [...routes, "/404"]) {
     const meta = getPageMeta(route);
+    const title = route === "/" ? "NullVibe | Custom Software Development Studio" : meta.title + " | NullVibe";
     let html = template;
     html = html.replace(
       /<title>.*?<\/title>/,
-      `<title>${escape(meta.title)} | NullVibe</title>`,
+      `<title>${escape(title)}</title>`,
     );
     html = html.replace(
       /(<meta\s+name="description"\s+content=")[^"]*("\s*\/?>)/,
@@ -61,7 +62,7 @@ try {
     );
     html = html.replace(
       /(<meta\s+property="og:title"\s+content=")[^"]*("\s*\/?>)/,
-      `$1${escape(meta.title)} | NullVibe$2`,
+      `$1${escape(title)}$2`,
     );
     html = html.replace(
       /(<meta\s+property="og:description"\s+content=")[^"]*("\s*\/?>)/,
@@ -82,7 +83,7 @@ try {
       '<meta property="og:image:height" content="942" />',
       '<meta property="og:image:alt" content="NullVibe chrome emblem with a crimson edge" />',
       '<meta name="twitter:card" content="summary_large_image" />',
-      '<meta name="twitter:title" content="' + escape(meta.title + " | NullVibe") + '" />',
+      '<meta name="twitter:title" content="' + escape(title) + '" />',
       '<meta name="twitter:description" content="' + escape(meta.description) + '" />',
       '<meta name="twitter:image" content="' + origin + '/images/hero-logo.webp" />',
       '<meta name="author" content="NullVibe" />'
@@ -96,6 +97,7 @@ try {
         description: "Custom software development studio building web applications, mobile apps, business websites and practical AI automation.",
         url: origin,
         email: "contact@nullvibe.tech",
+        sameAs: ["https://github.com/NullVibe-D"],
         logo: { "@type": "ImageObject", url: origin + "/images/logo-original.png" },
         knowsAbout: [
           "Custom software development",
@@ -123,7 +125,7 @@ try {
         "@type": "WebPage",
         "@id": canonical + "#webpage",
         url: canonical,
-        name: meta.title + " | NullVibe",
+        name: title,
         description: meta.description,
         isPartOf: { "@id": origin + "/#website" },
         about: { "@id": organizationId },
@@ -187,7 +189,7 @@ try {
         headline: insight.title,
         description: insight.description,
         datePublished: insight.published,
-        dateModified: insight.published,
+        dateModified: insight.modified || insight.published,
         author: { "@id": organizationId },
         publisher: { "@id": organizationId },
         mainEntityOfPage: { "@id": canonical + "#webpage" },

@@ -1,6 +1,8 @@
 # NullVibe company website
 
-The company website at https://nullvibe.tech. The checked-out source may include reviewed changes that are not yet deployed.
+[NullVibe](https://nullvibe.tech/) is a custom software development studio building web applications, mobile apps and AI automation for businesses. This is the studio’s official website repository.
+
+Start with the [free software project brief and worked example](https://nullvibe.tech/insights/plan-a-custom-software-project#project-brief), try the [interactive software demos](https://nullvibe.tech/demos), or explore [development services](https://nullvibe.tech/services).
 
 ## Included
 

@@ -184,7 +184,8 @@ export const insightArticles = [
     slug: "plan-a-custom-software-project",
     title: "How to Plan a Custom Software Project",
     description:
-      "A practical guide to defining the problem, mapping users, prioritising features, planning integrations and preparing a custom software project for delivery.",
+      "Plan a custom software project with a free one-page brief template, a worked booking example and a checklist for scope, integrations and handover.",
+    modified: "2026-11-04",
     category: "CUSTOM SOFTWARE",
     readTime: "7 min read",
     published: "2026-11-02",

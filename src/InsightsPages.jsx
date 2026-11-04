@@ -257,6 +257,16 @@ export function InsightDetail({ slug }) {
           By <Link to="/about">NullVibe</Link> · Published <time dateTime={article.published}>{article.publishedLabel}</time> <span aria-hidden="true">·</span> {article.readTime}
         </p>
         <p className="lead">{content.intro}</p>
+        {slug === "plan-a-custom-software-project" && (
+          <section id="project-brief">
+            <h2>Free software project brief template</h2>
+            <p>Use this editable outline before asking a developer for an estimate. It covers the business problem, first release, exclusions, budget and how you will decide the work is ready. No email signup is required.</p>
+            <p><a className="text-link" href="/resources/software-project-brief.txt" download>Download the project brief (.txt) <ArrowRight /></a></p>
+            <h3>A worked example: booking requests</h3>
+            <p>Suppose a studio takes appointments over the phone. The first release could let a customer request a slot and staff accept or decline it. Payments and calendar synchronisation can wait. An acceptance check: when two people request the same time, staff can confirm only one, and the other customer gets a clear response.</p>
+            <p>Before building, count how many calls staff handle about availability in a typical week. Compare that count after launch alongside missed requests. This is an illustrative brief, not a client result.</p>
+          </section>
+        )}
         {content.sections.map((section) => (
           <section key={section.heading}>
             <h2>{section.heading}</h2>

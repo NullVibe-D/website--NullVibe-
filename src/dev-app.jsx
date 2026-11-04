@@ -10,5 +10,5 @@ function DevApp({ path }) {
 export function renderApp() {
   const path = location.pathname.replace(/\/$/, "") || "/";
   createRoot(document.getElementById("root")).render(<DevApp path={path} />);
-  document.title = getPageMeta(path).title + " | NullVibe";
+  document.title = path === "/" ? "NullVibe | Custom Software Development Studio" : getPageMeta(path).title + " | NullVibe";
 }

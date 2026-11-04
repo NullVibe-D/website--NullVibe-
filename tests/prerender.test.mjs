@@ -40,6 +40,7 @@ test("all generated internal links, fragments and first-party assets resolve in 
   for (const m of html.matchAll(/<a\b[^>]*\bhref="([^"]*)"/g)) {
     const target=new URL(m[1].replaceAll("&amp;","&"),"https://nullvibe.tech"+route);
     if(target.origin!=="https://nullvibe.tech")continue;
+    if (target.pathname.startsWith("/resources/")) { assets.add(target.pathname); continue; }
     assert.ok(known.has(target.pathname),route+" broken link: "+m[1]);
     if(target.hash)assert.ok(known.get(target.pathname).includes('id="'+decodeURIComponent(target.hash.slice(1))+'"'),route+" missing fragment: "+target.hash);
   }
