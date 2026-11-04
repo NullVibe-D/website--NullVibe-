@@ -254,7 +254,7 @@ export function InsightDetail({ slug }) {
       </PageHero>
       <article className="shell section insight-article">
         <p className="insight-meta">
-          Published {article.publishedLabel} <span aria-hidden="true">·</span> {article.readTime}
+          By <Link to="/about">NullVibe</Link> · Published <time dateTime={article.published}>{article.publishedLabel}</time> <span aria-hidden="true">·</span> {article.readTime}
         </p>
         <p className="lead">{content.intro}</p>
         {content.sections.map((section) => (

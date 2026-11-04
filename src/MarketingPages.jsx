@@ -19,7 +19,8 @@ import {
   FAQList,
   NotFound,
 } from "./components.jsx";
-import { services, demos } from "./data.js";
+import { serviceGuidance } from "./service-guidance.js";
+import { services, demos, insightArticles } from "./data.js";
 import { DemoCard } from "./Demos.jsx";
 const icons = { Desktop, DeviceMobile, Sparkle, ShoppingBag, Plugs, Wrench };
 const homeQuestions = [
@@ -72,6 +73,8 @@ export function Home() {
         <div className="hero-art">
           <img
             src="/images/hero-logo.webp"
+            srcSet="/images/chrome-hero-640.webp 640w, /images/hero-logo.webp 1200w"
+            sizes="(max-width: 600px) min(410px, 92vw), (max-width: 1440px) 44vw, 640px"
             alt="NullVibe’s sculptural chrome emblem with a crimson edge"
             width="1200"
             height="942"
@@ -344,6 +347,8 @@ export function ServiceDetail({ slug }) {
   const s = services.find((item) => item.slug === slug);
   if (!s) return <NotFound />;
   const Icon = icons[s.icon];
+  const [question, answer, guideSlug] = serviceGuidance[slug];
+  const guide = insightArticles.find(article => article.slug === guideSlug);
   return (
     <>
       <PageHero
@@ -408,6 +413,10 @@ export function ServiceDetail({ slug }) {
             </Link>
           </div>
         </div>
+      </section>
+      <section className="shell section split-section" aria-labelledby="planning-question">
+        <div><Eyebrow>BEFORE YOU BUILD</Eyebrow><h2 id="planning-question">{question}</h2></div>
+        <div className="prose"><p>{answer}</p><Link to={"/insights/" + guide.slug} className="text-link">{guide.title} <ArrowRight /></Link></div>
       </section>
       <section className="shell section related-demo" data-reveal>
         <div>

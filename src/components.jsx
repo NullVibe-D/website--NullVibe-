@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -43,7 +43,12 @@ export function Logo() {
   return (
     <Link to="/" className="brand" aria-label="NullVibe home">
       <span className="brand-mark">
-        <img src="/images/logo-mark.webp" alt="" width="44" height="36" />
+        <img
+          src="/images/chrome-mark-192.webp"
+          alt=""
+          width="192"
+          height="151"
+        />
       </span>
       <span>
         NullVibe<span className="red">.</span>
@@ -51,72 +56,74 @@ export function Logo() {
     </Link>
   );
 }
-export function Header({ path }) {
-  const [open, setOpen] = useState(false);
-  const menuButton = useRef(null);
-  useEffect(() => {
-    const escape = (e) => {
-      if (e.key === "Escape" && open) {
-        setOpen(false);
-        menuButton.current?.focus();
+function NavLinks({ path }) {
+  return [
+    ["/services", "Services"],
+    ["/process", "Our process"],
+    ["/demos", "Demos"],
+    ["/about", "Company"],
+  ].map(([url, label]) => (
+    <Link
+      key={url}
+      to={url}
+      aria-current={
+        path === url
+          ? "page"
+          : path.startsWith(url + "/")
+            ? "location"
+            : undefined
       }
-    };
-    window.addEventListener("keydown", escape);
-    const mq = matchMedia("(min-width: 901px)");
-    const close = () => setOpen(false);
-    mq.addEventListener("change", close);
-    return () => {
-      window.removeEventListener("keydown", escape);
-      mq.removeEventListener("change", close);
-    };
-  }, [open]);
+    >
+      {label}
+    </Link>
+  ));
+}
+
+export function Header({ path }) {
   return (
     <header className="site-header">
       <div className="shell nav">
         <Logo />
-        <nav
-          id="navigation"
-          aria-label="Main navigation"
-          className={"nav-links " + (open ? "open" : "")}
-        >
-          {[
-            ["/services", "Services"],
-            ["/process", "Our process"],
-            ["/demos", "Demos"],
-            ["/about", "Company"],
-          ].map(([url, label]) => (
-            <Link
-              key={url}
-              to={url}
-              aria-current={
-                path === url || path.startsWith(url + "/") ? "page" : undefined
-              }
-            >
-              {label}
-            </Link>
-          ))}
-          <Link to="/contact" className="mobile-contact">
-            Contact
-          </Link>
-          <Link to="/booking" className="mobile-book">
-            Book a discovery call <ArrowUpRight />
-          </Link>
+        <nav className="nav-links primary-nav" aria-label="Main navigation">
+          <NavLinks path={path} />
         </nav>
         <div className="desktop-book">
           <Button to="/contact" variant="ink">
             Let’s talk
           </Button>
         </div>
-        <button
-          ref={menuButton}
-          className="menu-toggle"
-          aria-label={open ? "Close menu" : "Open menu"}
-          aria-expanded={open}
-          aria-controls="navigation"
-          onClick={() => setOpen(!open)}
-        >
-          {open ? <X size={24} /> : <List size={24} />}
-        </button>
+        <details className="mobile-menu">
+          <summary className="menu-toggle" aria-controls="navigation">
+            <span className="when-closed">
+              <List size={24} />
+              <span className="sr-only">Open menu</span>
+            </span>
+            <span className="when-open">
+              <X size={24} />
+              <span className="sr-only">Close menu</span>
+            </span>
+          </summary>
+          <nav
+            id="navigation"
+            className="nav-links open"
+            aria-label="Main navigation"
+          >
+            <NavLinks path={path} />
+            <Link
+              to="/contact"
+              aria-current={path === "/contact" ? "page" : undefined}
+            >
+              Contact
+            </Link>
+            <Link
+              to="/booking"
+              className="mobile-book"
+              aria-current={path === "/booking" ? "page" : undefined}
+            >
+              Plan a discovery call <ArrowUpRight />
+            </Link>
+          </nav>
+        </details>
       </div>
     </header>
   );
@@ -211,8 +218,10 @@ export function PageHero({ label, title, text, children }) {
       </div>
       <Eyebrow>{label}</Eyebrow>
       <h1>
-        {title.replace(/[.!]$/, "")}
-        <span className="red">.</span>
+        {title.replace(/[.!?]$/, "")}
+        <span className="red">
+          {/[!?]$/.test(title) ? title.slice(-1) : "."}
+        </span>
       </h1>
       <p>{text}</p>
       {children}
@@ -260,36 +269,3 @@ export function NotFound() {
     </section>
   );
 }
-export function Motion() {
-  useEffect(() => {
-    const reduce = matchMedia("(prefers-reduced-motion: reduce)");
-    if (reduce.matches) return;
-    const nodes = [...document.querySelectorAll("[data-reveal]")];
-    const obs = new IntersectionObserver(
-      (entries) =>
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("is-visible");
-            obs.unobserve(entry.target);
-          }
-        }),
-      { threshold: 0.08 },
-    );
-    nodes.forEach((node) => {
-      if (node.getBoundingClientRect().top > innerHeight) {
-        node.classList.add("will-reveal");
-        obs.observe(node);
-      }
-    });
-    const showAll = () => {
-      if (reduce.matches) nodes.forEach((n) => n.classList.add("is-visible"));
-    };
-    reduce.addEventListener("change", showAll);
-    return () => {
-      obs.disconnect();
-      reduce.removeEventListener("change", showAll);
-    };
-  }, []);
-  return null;
-}
-

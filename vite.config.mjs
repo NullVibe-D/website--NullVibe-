@@ -4,6 +4,11 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   build: {
     outDir: "dist/client",
+    manifest: true,
+    assetsInlineLimit: 0,
+    rollupOptions: {
+      input: ["index.html", "src/entries/contact.jsx", "src/entries/demos.jsx"],
+    },
   },
   optimizeDeps: {
     include: ["react", "react-dom/client"],

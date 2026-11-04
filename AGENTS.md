@@ -11,3 +11,7 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 ## Confirmed company direction (29 October 2026)
 
 White-first professional multi-page company website with charcoal sections, restrained crimson accents, enhanced supplied logo and purposeful lightweight motion. NullVibe offers custom web/mobile applications, business systems, AI/automation, websites/commerce, and ongoing improvement. Emphasize client business growth, fair transparent pricing and clear scope. Only demo projects exist; do not invent clients, metrics, testimonials or results. Public contact is contact@nullvibe.tech; domain is nullvibe.tech. Public hosting is deferred until local production work is complete. Calendar account and email-delivery credentials are not yet supplied; never simulate live success. User authorized local automated browser testing. Current request permits expanding the selected concept into a complete professional site.
+
+## Hosted site review, 4 November 2026
+
+The company site now runs on Vercel at https://nullvibe.tech. Preserve the chrome-and-crimson homepage sculpture in the header wordmark, with no opaque badge. Show page content immediately on slow connections; use motion only where it supports an interaction. Mail and scheduling are separate launch integrations, and the interface must describe the delivery mode it can actually use.

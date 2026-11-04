@@ -1,5 +1,5 @@
 import React from "react";
-import { Header, Footer, Motion, NotFound } from "./components.jsx";
+import { Header, Footer, NotFound } from "./components.jsx";
 import { Home, Services, ServiceDetail } from "./MarketingPages.jsx";
 import { Demos, DemoDetail } from "./Demos.jsx";
 import { About, Process, Privacy, FAQ } from "./CompanyPages.jsx";
@@ -38,7 +38,6 @@ export function App({ path = "/" }) {
       <Header path={normalized} />
       <main id="main">{content || <NotFound />}</main>
       <Footer />
-      <Motion />
     </>
   );
 }

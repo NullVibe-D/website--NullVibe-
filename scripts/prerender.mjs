@@ -1,7 +1,7 @@
 import { createServer, loadEnv } from "vite";
 import { renderToString } from "react-dom/server";
 import React from "react";
-import { readFile, mkdir, writeFile } from "node:fs/promises";
+import { readFile, mkdir, writeFile, unlink } from "node:fs/promises";
 import path from "node:path";
 const root = process.cwd();
 const env = loadEnv("production", root, "");
@@ -23,6 +23,25 @@ try {
   const { routes, getPageMeta, services, insightArticles } = await vite.ssrLoadModule("/src/data.js");
   const { faqItems } = await vite.ssrLoadModule("/src/CompanyPages.jsx");
   const template = await readFile("dist/client/index.html", "utf8");
+  const manifest = JSON.parse(await readFile("dist/client/.vite/manifest.json", "utf8"));
+  // Static pages use just the native navigation enhancements. Load form/demo
+  // dependencies in parallel only on pages which actually need React.
+  function interactiveScripts(route) {
+    const key = route === "/contact" ? "contact" : /^\/demos(?:\/|$)/.test(route) ? "demos" : null;
+    if (!key) return "";
+    const entry = manifest["src/entries/" + key + ".jsx"];
+    const imports = new Set();
+    function collect(chunk) {
+      for (const dep of chunk.imports || []) {
+        if (imports.has(dep)) continue;
+        imports.add(dep);
+        collect(manifest[dep]);
+      }
+    }
+    collect(entry);
+    return [...imports].map(k => '<link rel="modulepreload" crossorigin href="/' + manifest[k].file + '" />').join("") +
+      '<script type="module" crossorigin src="/' + entry.file + '"></script>';
+  }
   const escape = (s) =>
     s
       .replaceAll("&", "&amp;")
@@ -49,9 +68,12 @@ try {
       `$1${escape(meta.description)}$2`,
     );
     const canonical = origin + (route === "/" ? "/" : route);
+    const release = process.env.VERCEL_GIT_COMMIT_SHA || "";
+    if (/^[0-9a-f]{40}$/i.test(release)) html = html.replace("</head>", '<meta name="build-revision" content="' + release + '" /></head>');
     const extra = meta.notFound
       ? '<meta name="robots" content="noindex,follow" />'
       : `<link rel="canonical" href="${canonical}" /><meta property="og:url" content="${canonical}" /><meta name="robots" content="index,follow,max-image-preview:large" />`;
+    if (insightArticles.some(a => route === "/insights/" + a.slug)) html = html.replace(/(property="og:type"\s+content=")website(")/, "$1article$2");
     const social = meta.notFound ? "" : [
       '<meta property="og:site_name" content="NullVibe" />',
       '<meta property="og:locale" content="en_US" />',
@@ -105,12 +127,12 @@ try {
         description: meta.description,
         isPartOf: { "@id": origin + "/#website" },
         about: { "@id": organizationId },
-        primaryImageOfPage: {
+        ...(route === "/" ? {primaryImageOfPage: {
           "@type": "ImageObject",
           url: origin + "/images/hero-logo.webp",
           width: 1200,
           height: 942
-        },
+        }} : {}),
         inLanguage: "en"
       }
     ];
@@ -145,6 +167,7 @@ try {
     }
     const service = services.find((item) => route === "/services/" + item.slug);
     if (service) {
+      graph[2].mainEntity = { "@id": canonical + "#service" };
       graph.push({
         "@type": "Service",
         "@id": canonical + "#service",
@@ -157,6 +180,7 @@ try {
     }
     const insight = insightArticles.find((item) => route === "/insights/" + item.slug);
     if (insight) {
+      graph[2].mainEntity = { "@id": canonical + "#article" };
       graph.push({
         "@type": "Article",
         "@id": canonical + "#article",
@@ -190,7 +214,7 @@ try {
       JSON.stringify({ "@context": "https://schema.org", "@graph": graph })
         .replace(/</g, "\\u003c") +
       "</script>";
-    html = html.replace("</head>", extra + social + structuredData + "\n</head>");
+    html = html.replace("</head>", extra + social + structuredData + interactiveScripts(route) + "\n</head>");
     html = html.replace(
       '<div id="root"></div>',
       `<div id="root">${renderToString(React.createElement(App, { path: route }))}</div>`,
@@ -202,6 +226,7 @@ try {
     await mkdir(path.dirname(target), { recursive: true });
     await writeFile(target, html);
   }
+  await unlink("dist/client/.vite/manifest.json");
   await writeFile(
     "dist/client/sitemap.xml",
     `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${routes.map((r) => `<url><loc>${origin}${r}</loc></url>`).join("")}</urlset>`,

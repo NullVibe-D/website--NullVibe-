@@ -25,9 +25,7 @@ p {
 .tone {
   color: #62656e;
 }
-.site-header {
-  view-transition-name: site-header;
-}
+
 .nav {
   height: 88px;
   gap: 32px;
@@ -104,12 +102,9 @@ p {
   font-size: 16px;
   max-width: 480px;
 }
-.hero-copy {
-  animation: enter 0.7s var(--ease) both;
-}
+
 .hero-art {
   margin-right: -30px;
-  animation: enter 0.95s var(--ease) both;
 }
 .hero-art > img {
   aspect-ratio: 1200/942;
@@ -457,7 +452,7 @@ p {
   display: flex;
   gap: 11px;
   font-size: 9px;
-  color: #727884;
+  color: #59616b;
   line-height: 1.7;
   margin-bottom: 55px;
   letter-spacing: 0.05em;
@@ -537,7 +532,7 @@ p {
 }
 .large-list li > span {
   font-size: 10px;
-  color: #727884;
+  color: #59616b;
 }
 .large-list h3 {
   font-size: 20px;
@@ -773,7 +768,7 @@ p {
   margin-bottom: 10px;
 }
 .form-intro p {
-  font-size: 11px;
+  font-size: 13px;
 }
 label {
   line-height: 1.65;
@@ -805,8 +800,8 @@ textarea:hover {
   accent-color: var(--red);
 }
 .consent span {
-  color: #656e7e;
-  font-size: 11px;
+  color: #535c68;
+  font-size: 13px;
   line-height: 1.85;
 }
 .consent a,
@@ -875,17 +870,6 @@ textarea:hover {
 .calendar-panel .text-link {
   margin-top: 20px;
 }
-.will-reveal {
-  opacity: 0;
-  transform: translateY(22px);
-  transition:
-    opacity 0.65s var(--ease),
-    transform 0.7s var(--ease);
-}
-.will-reveal.is-visible {
-  opacity: 1;
-  transform: none;
-}
 summary:focus-visible {
   outline: 3px solid var(--red);
   outline-offset: 5px;
@@ -893,29 +877,6 @@ summary:focus-visible {
 main {
   animation: none;
 }
-@keyframes enter {
-  from {
-    opacity: 0;
-    transform: translateY(15px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-@view-transition {
-  navigation: auto;
-}
-::view-transition-old(root) {
-  animation-duration: 0.18s;
-}
-::view-transition-new(root) {
-  animation-duration: 0.28s;
-}
-::view-transition-group(site-header) {
-  animation-duration: 0.25s;
-}
-
 @media (min-width: 1500px) {
   .hero {
     min-height: 700px;
@@ -1630,15 +1591,6 @@ main {
     animation: none !important;
     transition: none !important;
   }
-  .will-reveal {
-    opacity: 1;
-    transform: none;
-  }
-  ::view-transition-old(root),
-  ::view-transition-new(root),
-  ::view-transition-group(site-header) {
-    animation: none !important;
-  }
 }
 .timeline-step {
   grid-template-columns: 80px minmax(0, 1fr);
@@ -1675,8 +1627,12 @@ main {
     grid-template-columns: 1fr;
   }
 }
-.section-heading>p{color:var(--muted)}.dark-section .section-heading>p{color:#b6bac5}
-
+.section-heading > p {
+  color: var(--muted);
+}
+.dark-section .section-heading > p {
+  color: #b6bac5;
+}
 
 /* Search-focused editorial pages */
 .insights-grid {
@@ -1694,7 +1650,7 @@ main {
   margin: 18px 0 14px;
 }
 .insight-card h2 a:hover,
-.insight-related a:hover {
+.insight-related li a:hover {
   color: var(--red);
 }
 .insight-card-bottom {
@@ -1771,7 +1727,7 @@ main {
 .insight-related ul {
   margin: 18px 0 30px;
 }
-.insight-related a {
+.insight-related li a {
   display: inline-flex;
   align-items: center;
   gap: 9px;
@@ -1820,5 +1776,124 @@ main {
   }
   .insights-promo > a {
     margin-top: 18px;
+  }
+}
+
+/* The header uses the actual homepage sculpture, sized specifically for the wordmark. */
+.brand {
+  min-height: 44px;
+  width: fit-content;
+  gap: 9px;
+}
+.brand .brand-mark {
+  width: 52px;
+  height: 34px;
+  background: transparent;
+  border-radius: 0;
+  mix-blend-mode: multiply;
+}
+.brand .brand-mark img {
+  background: transparent;
+  border-radius: 0;
+  object-fit: cover;
+  object-position: 50% 49%;
+  transform: scale(1.13);
+}
+.nav-links > a[aria-current="location"]::after {
+  width: 100%;
+}
+.mobile-menu,
+.mobile-menu .when-open,
+.mobile-menu[open] .when-closed {
+  display: none;
+}
+.mobile-menu .when-closed,
+.mobile-menu[open] .when-open {
+  display: inline-flex;
+}
+.menu-toggle {
+  list-style: none;
+  cursor: pointer;
+}
+.menu-toggle::-webkit-details-marker {
+  display: none;
+}
+@media (max-width: 900px) {
+  .mobile-menu {
+    display: block;
+  }
+  .menu-toggle {
+    width: 44px;
+    height: 44px;
+  }
+  .mobile-menu .nav-links {
+    max-height: calc(100dvh - 76px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .primary-nav {
+    display: none;
+  }
+}
+@media (max-width: 600px) {
+  .mobile-menu {
+    margin-left: auto;
+  }
+  .brand .brand-mark {
+    width: 44px;
+    height: 30px;
+  }
+  .mobile-menu .nav-links {
+    max-height: calc(100dvh - 72px);
+  }
+}
+.breadcrumb,
+.footer-bottom,
+.faq-number,
+.service-card-top > span,
+label > .optional,
+.value-list > div > span {
+  color: #59616b;
+}
+.breadcrumb,
+.footer-bottom,
+.faq-number {
+  font-size: 11px;
+}
+.preview-side {
+  color: #50565e;
+}
+.store-preview > p {
+  color: #4d5055;
+}
+.demo-card {
+  position: relative;
+}
+.demo-title::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+.demo-title:focus-visible::after {
+  outline: 3px solid var(--red);
+  outline-offset: 4px;
+}
+.demo-card:focus-within .round-link,
+.demo-card:hover .round-link {
+  transform: translate(1px, -1px);
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .demo-card:hover .preview-link {
+    transform: translateY(-4px);
+  }
+}
+.form-panel .form-intro .form-notice {
+  color: #444a55;
+  margin-top: 12px;
+}
+@media (max-width: 600px) {
+  .form-panel :is(input, select, textarea):not([type="checkbox"]),
+  .chat-input input {
+    font-size: 16px;
   }
 }

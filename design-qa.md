@@ -1,45 +1,45 @@
-# Design and functional review
+# NullVibe hosted-site review · 4 November 2026
 
-final result: passed
+The public website was inspected at https://nullvibe.tech, and the fixes were implemented against organization main at `de43560`. The production site and the local release candidate are different targets. No real enquiry, calendar booking, DNS change or production promotion was made.
 
-Scope: local responsive implementation of the first white-first NullVibe concept. Public launch integrations are not included in this pass.
+## What the visitor experiences
 
-## Evidence
+| Step | Public observation | Change and verification in the release candidate |
+| --- | --- | --- |
+| 1. Arrive | The header uses a flat mark on a black tile; the hero uses a separate metallic rendering. The headline and artwork fade in over 700–950 ms. All pages ship the same 100 KB compressed app. | Reused the actual silver-and-crimson sculpture at wordmark size (6.15 KB), with a stable reserved space. Copy and artwork paint immediately. Normal company pages serve HTML plus a small navigation enhancement; only contact and demos need React in the browser. |
+| 2. Navigate | Mobile navigation needed the full application to load. Whole-document transitions also captured both pages on navigation. | Native mobile disclosure opens before JavaScript, supports keyboard access, closes on Escape/outside click and has a scrollable panel on short screens. Ordinary links navigate immediately. Hover and focus feedback remain, with reduced-motion support. |
+| 3. Choose a service or read a guide | Some small labels, list numbers, FAQ indices and footers had insufficient contrast. A rule on the guides also applied the wrong text color to the enquiry button. | Corrected the shared styles, the guide button and question punctuation. Verified all generated internal links, page titles, canonical URLs and fragment targets, and that a service selection carries through to the enquiry form. |
+| 4. Try a demo | Three links on some cards led to the same page. Accessible names did not match the preview text. A single product showed “1 items”; long conversations could leave the latest answer outside the chat viewport. | One labelled link per card, cart pluralization and automatic scrolling inside the chat log. Verified filtering, sample bookings, cart changes and simulated checkout, suggested questions and typed responses. No live reservations, payments or AI calls are implied. |
+| 5. Enquire | The public send endpoint and health endpoint return 404. A visitor can encounter a Send button without an available delivery service. | Added Vercel Functions backed by the same validated delivery logic as the Node server. If delivery is unavailable the form explains the mode, offers a prefilled email draft and a downloadable brief. The send button is offered only after readiness. Tested native validation, retained inputs, retry, mocked provider rejection and acceptance, and actual downloadable text. Only a provider receipt allows a success response. |
+| 6. Arrange a call | The booking page opens an email request. No scheduling URL is active, and public DNS returned no MX answer for the advertised email domain. | The fallback explicitly requests a conversation; it never reserves a slot. Verified the link target. Mailbox routing, real receipt, and any external scheduling confirmation still need owner-side setup and a live test. |
 
-- Source: C:/Users/Lenovo/.codex/generated_images/01a18629-5351-7be2-805a-8a7ebebc9e5c/exec-7b953952-45e2-42be-a95e-c1a9f98bdf8f.png (1122 x 1402).
-- Implementation: qa/home-desktop.png, CSS viewport 1440 x 1800, deviceScaleFactor 1, full-page capture.
-- Combined comparison: qa/comparison-final.png. Source normalized to 720 x 900; implementation first 1440 x 1800 region normalized to 720 x 900. The source is a shorter concept; implementation adds the agreed value section and full footer below this region.
-- Mobile evidence: qa/home-mobile.png, qa/services-mobile.png, qa/contact-mobile.png; 390 x 844 CSS viewport, deviceScaleFactor 1, full-page captures.
-- Functional evidence: qa/results.json.
+## Loading measurements
 
-## Comparison history
+Three cold loads per revision on the same Windows machine and local Node origin configuration: Chromium, 390 × 844 CSS pixels, device scale 1, simulated 150 ms latency, 1.6 Mbps download and 4× CPU slowdown. Each run used a new browser context. The timing values below are medians. These are lab comparisons, not live visitor analytics or a universal device guarantee.
 
-Initial comparison: qa/comparison.png. Desktop body and service text appeared too small relative to the visual target, and the hero started lower than intended (P2). Increased desktop hero heading to 70px, support text to 18px, service text to 14px and service headings to 19px. Reduced hero vertical padding.
+| Homepage | Previous build | Review build |
+| --- | ---: | ---: |
+| Initial JavaScript response, compressed | 100,112 bytes | 595 bytes |
+| CSS response, compressed | 13.39 KB | 10.55 KB |
+| Hero image selected at the test size | 41,954 bytes | 19,944 bytes |
+| First contentful paint | 0.98 s | 1.02 s |
+| Largest contentful paint | 1.64 s | 1.02 s |
+| Cumulative layout shift during the sample | 0.0004 | 0.0069 |
 
-Final comparison: qa/comparison-final.png. White split hero, silver/red logo, neutral typography, red actions and dark demo section are coherent. No actionable P0/P1/P2 issues remain in the implemented scope.
+The main element appeared about 38% sooner in this sample. First paint remained about one second and did not improve; the small layout shift increased. The build does not hide useful content behind an entrance animation. The live versioned script returned `max-age=0, must-revalidate`. The proposed Vercel configuration gives fingerprinted JS, CSS and fonts a one-year immutable cache, with a shorter one-hour cache for image paths that may be reused. HTML is not assigned the immutable policy.
 
-## Required surfaces
+## Verification
 
-- Typography: self-hosted Manrope; clear hierarchy and readable form labels. Desktop fine print and demo preview text are intentionally subordinate. Actual interactive demos have larger readable controls.
-- Spacing: generous split hero, aligned margins, three-column service strip, two-column demos. Mobile stacks naturally. All 11 routes checked at 1440, 768, 390 and 320px; no horizontal overflow.
-- Colors: near-white foundation, charcoal demo panels, red CTAs, readable gray support copy. Focus outlines and selected states present.
-- Assets: supplied original logo and generated enhanced hero, preserving silhouette. Hero WebP is 41,954 bytes. No broken images in tested views.
-- Copy: no invented clients, testimonials, revenue claims or delivered-project results. Demo concepts are explicit. Booking and contact copy accurately describes unconnected integrations.
+- **Live origin:** 22 sitemap pages × 390 and 1440 pixels (44 checks). All loaded over HTTPS with matching canonical references, a single H1, no horizontal overflow and no detected broken images. HTTP and www redirected to the canonical HTTPS domain; sitemap and robots responded; an unknown path returned 404.
+- **Local production candidate:** 22 pages + 404 × four widths (320, 390, 768, 1440) × three engines = **276 layout checks**. Chromium 148, Firefox 157 and Playwright WebKit 27.2 passed the interaction suite, including keyboard FAQ/menu, no-JavaScript service navigation, reduced motion and the enquiry paths. No uncaught browser runtime errors recorded.
+- **Accessibility:** 23 routes × three engines = **69 scans**, at mobile width with axe WCAG 2/2.1 A/AA tags. No violations detected in these scans. They do not cover every assistive technology, browser version, interaction state or physical device.
+- **Server, adapters, packaging and build:** 29 automated tests passed. Covers bounded requests, consent, missing or invalid fields, origin validation, rate limits, provider timeouts and receipts, Vercel function exports, real HTTP statuses, static files, all 22 pages and link/asset integrity. Provider outcomes were simulated. The rate limit is per running instance.
+- Updated the Vite patch release and affected build dependencies; the final npm advisory scan reported zero known vulnerabilities. This is a dependency check, not a security penetration test.
 
-Intentional adaptations: demonstration previews depict the site's own sample applications instead of the concept's invented fitness/watch businesses. Contact is a dedicated page; homepage has a CTA. Added value section explains the agreed positioning. Header uses the original dark-backed logo treatment. These are scope/content adaptations rather than fidelity defects.
+## Release boundary
 
-Focused review: contact-mobile.png inspected at full width for labels, controls, spacing and delivery disclosure. Hero/logo and service hierarchy inspected in the combined desktop view. No additional focused crop was required for the final identified typography issue.
+A local preview can prove the built pages, browser behavior and function logic. It cannot verify production credentials, actual inbox delivery, a real scheduler or the behavior of a future production deployment. Before relying on enquiries, follow [the Vercel and mailbox handoff](docs/hosting-handoff.md). Do not mark a lead as delivered just because the site loads or because health reports configuration present.
 
-## Interaction checks
+## Repeat the checks
 
-Passed: mobile menu navigation; demo filtering; booking day/time selection and simulated confirmation; cart quantities and totals; simulated checkout; scripted assistant responses; contact required-field constraints, service preselection, brief generation/download and retained values when editing; unconfigured booking fallback; reduced-motion behavior.
-
-Browser JavaScript errors: 0. Production build passed. Four Sites worker/packaging checks passed.
-
-## Remaining launch requirements
-
-Supply public business email and HTTPS scheduling URL in .env.local. Contact currently prepares/downloads a brief; no server delivery occurs. With an email configured, it opens an email draft for the visitor to send. Scheduling opens the real provider only when configured. Confirm company content, deployment domain and privacy wording before publishing. No live deployment, cross-browser device-lab test or field Core Web Vitals measurement has been performed.
-
-## Follow-up polish
-
-P3: Add authentic product photography to the commerce demo when product assets are available.
+Build the site, run `npm run test:server`, `npm run test:sites` and `npm run test:build`. Start the local production preview. Set `TEST_URL` to its loopback URL, and run `npm run test:browser` with `TEST_BROWSER` set to `chromium`, `firefox` or `webkit` and the corresponding Playwright browser installed. Results are written to `qa/final/<engine>/`. Browser form tests intercept submissions; they do not email anyone.

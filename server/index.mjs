@@ -6,6 +6,12 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { pipeline } from "node:stream/promises";
 import { createGzip } from "node:zlib";
 import { isIP } from "node:net";
+import {
+  createContactApi,
+  publicOrigin,
+  readJson,
+  RequestError,
+} from "./contact-api.mjs";
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const mimeTypes = {
@@ -29,33 +35,6 @@ const mimeTypes = {
   ".webmanifest": "application/manifest+json",
   ".mp4": "video/mp4",
 };
-const emailPattern = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/;
-const localhostNames = new Set(["localhost", "127.0.0.1", "[::1]"]);
-
-class RequestError extends Error {
-  constructor(status, message, errors) {
-    super(message);
-    this.status = status;
-    this.errors = errors;
-  }
-}
-
-function publicOrigin(value) {
-  if (!value) return null;
-  const url = new URL(value);
-  if (
-    !["http:", "https:"].includes(url.protocol) ||
-    url.username ||
-    url.password ||
-    (url.protocol === "http:" && !localhostNames.has(url.hostname))
-  ) {
-    throw new Error(
-      "PUBLIC_SITE_URL must be an HTTPS origin, or HTTP localhost for development.",
-    );
-  }
-  return url.origin;
-}
-
 function setSecurityHeaders(response, secure) {
   response.setHeader("X-Content-Type-Options", "nosniff");
   response.setHeader("X-Frame-Options", "DENY");
@@ -80,130 +59,6 @@ function json(response, status, payload, method = "GET") {
     "Content-Length": Buffer.byteLength(body),
   });
   response.end(method === "HEAD" ? undefined : body);
-}
-
-function validateContact(input) {
-  if (!input || Array.isArray(input) || typeof input !== "object")
-    throw new RequestError(400, "Please submit a valid project enquiry.");
-  const errors = {};
-  const values = {};
-  for (const [field, min, max] of [
-    ["name", 2, 100],
-    ["email", 3, 254],
-    ["company", 0, 150],
-    ["service", 0, 100],
-    ["budget", 0, 100],
-    ["message", 15, 5000],
-  ]) {
-    const raw = input[field] ?? "";
-    const value = typeof raw === "string" ? raw.trim() : "";
-    values[field] = value;
-    if (
-      typeof raw !== "string" ||
-      value.length < min ||
-      value.length > max ||
-      (field !== "message" && /[\x00-\x1f\x7f]/.test(value))
-    ) {
-      errors[field] = min
-        ? `Use ${min}–${max} characters for ${field}.`
-        : `Use no more than ${max} characters for ${field}.`;
-    }
-  }
-  if (!emailPattern.test(values.email))
-    errors.email = "Enter a valid email address.";
-  if (input.consent !== true)
-    errors.consent = "Please agree that we may contact you about this enquiry.";
-  if (Object.keys(errors).length)
-    throw new RequestError(
-      422,
-      "Please check the highlighted details.",
-      errors,
-    );
-  if (
-    input.website != null &&
-    (typeof input.website !== "string" || input.website.trim())
-  )
-    throw new RequestError(
-      422,
-      "This enquiry could not be submitted. Please try again.",
-    );
-  return values;
-}
-
-function readJson(request, limit) {
-  if (
-    !/^application\/json(?:\s*;|$)/i.test(request.headers["content-type"] || "")
-  )
-    throw new RequestError(415, "Use JSON to submit your enquiry.");
-  if (
-    request.headers["content-encoding"] &&
-    request.headers["content-encoding"] !== "identity"
-  )
-    throw new RequestError(415, "Compressed request bodies are not supported.");
-  if (Number(request.headers["content-length"]) > limit)
-    throw new RequestError(
-      413,
-      "Your enquiry is too large. Please shorten it and try again.",
-    );
-  return new Promise((resolveBody, reject) => {
-    let size = 0;
-    const chunks = [];
-    function cleanup() {
-      request.off("data", data);
-      request.off("end", end);
-      request.off("aborted", aborted);
-      request.off("error", failed);
-    }
-    function failed(error) {
-      cleanup();
-      reject(error);
-    }
-    function aborted() {
-      failed(
-        new RequestError(400, "The enquiry was interrupted. Please try again."),
-      );
-    }
-    function data(chunk) {
-      size += chunk.length;
-      if (size > limit) {
-        failed(
-          new RequestError(
-            413,
-            "Your enquiry is too large. Please shorten it and try again.",
-          ),
-        );
-        request.resume();
-      } else chunks.push(chunk);
-    }
-    function end() {
-      cleanup();
-      try {
-        resolveBody(JSON.parse(Buffer.concat(chunks).toString("utf8")));
-      } catch {
-        reject(new RequestError(400, "Please submit valid JSON."));
-      }
-    }
-    request.on("data", data);
-    request.once("end", end);
-    request.once("aborted", aborted);
-    request.once("error", failed);
-  });
-}
-
-function originAllowed(request, configuredOrigin) {
-  try {
-    const origin = new URL(request.headers.origin);
-    if (origin.origin !== request.headers.origin) return false;
-    if (request.headers["sec-fetch-site"] === "cross-site") return false;
-    if (configuredOrigin) return origin.origin === configuredOrigin;
-    return (
-      localhostNames.has(origin.hostname) &&
-      origin.protocol === "http:" &&
-      origin.host === request.headers.host
-    );
-  } catch {
-    return false;
-  }
 }
 
 function clientAddress(request, trustProxy) {
@@ -320,131 +175,30 @@ async function serveStatic(request, response, pathname, rootPromise) {
 export function createServer({
   rootDir = resolve(projectRoot, "dist/client"),
   env = process.env,
-  fetchImpl = globalThis.fetch,
-  now = Date.now,
-  rateLimitMax = 5,
-  rateLimitWindowMs = 15 * 60 * 1000,
-  maxBodyBytes = 20 * 1024,
-  deliveryTimeoutMs = 10000,
+  ...apiOptions
 } = {}) {
-  const configuredOrigin = publicOrigin(env.PUBLIC_SITE_URL);
-  const secure = configuredOrigin?.startsWith("https:");
-  const contactConfigured = Boolean(
-    env.RESEND_API_KEY?.trim() &&
-    emailPattern.test(env.CONTACT_TO_EMAIL || "") &&
-    emailPattern.test(env.CONTACT_FROM_EMAIL || ""),
-  );
+  const api = createContactApi({ env, ...apiOptions });
+  const secure = publicOrigin(env.PUBLIC_SITE_URL)?.startsWith("https:");
   // Resolve once without an unhandled rejection if a build has not been created yet.
   const rootPromise = realpath(rootDir).catch(() => resolve(rootDir));
-  const attempts = new Map();
   const server = createHttpServer(async (request, response) => {
     setSecurityHeaders(response, secure);
     try {
       const pathname = new URL(request.url, "http://localhost").pathname;
-      if (pathname === "/api/health") {
-        if (!["GET", "HEAD"].includes(request.method)) {
-          response.setHeader("Allow", "GET, HEAD");
-          throw new RequestError(405, "Method not allowed.");
-        }
-        json(
-          response,
-          200,
-          { status: "ok", contactConfigured },
-          request.method,
-        );
-        return;
-      }
-      if (pathname === "/api/contact") {
-        if (request.method !== "POST") {
-          response.setHeader("Allow", "POST");
-          throw new RequestError(405, "Method not allowed.");
-        }
-        if (!originAllowed(request, configuredOrigin))
-          throw new RequestError(
-            403,
-            "Please submit your enquiry from the NullVibe website.",
-          );
-        const time = now();
-        for (const [address, entry] of attempts)
-          if (entry.resetAt <= time) attempts.delete(address);
-        const address = clientAddress(request, env.TRUST_PROXY === "1");
-        const entry = attempts.get(address) || {
-          count: 0,
-          resetAt: time + rateLimitWindowMs,
-        };
-        if (
-          entry.count >= rateLimitMax ||
-          (!attempts.has(address) && attempts.size >= 10000)
-        ) {
-          response.setHeader(
-            "Retry-After",
-            String(Math.max(1, Math.ceil((entry.resetAt - time) / 1000))),
-          );
-          throw new RequestError(
-            429,
-            "You have sent several enquiries recently. Please wait a little before trying again.",
-          );
-        }
-        entry.count += 1;
-        attempts.set(address, entry);
-        const values = validateContact(await readJson(request, maxBodyBytes));
-        if (!contactConfigured)
-          throw new RequestError(
-            503,
-            "Online enquiry delivery is not connected yet. Your message has not been sent. Please use the contact alternatives on this page.",
-          );
-        const text = [
-          "New NullVibe project enquiry",
-          "",
-          `Name: ${values.name}`,
-          `Email: ${values.email}`,
-          `Company: ${values.company || "Not specified"}`,
-          `Service: ${values.service || "Not specified"}`,
-          `Budget: ${values.budget || "Not specified"}`,
-          "",
-          "Project:",
-          values.message,
-          "",
-          "Permission: The sender agreed to be contacted about this enquiry.",
-        ].join("\n");
-        try {
-          const delivered = await fetchImpl("https://api.resend.com/emails", {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${env.RESEND_API_KEY}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              from: env.CONTACT_FROM_EMAIL,
-              to: [env.CONTACT_TO_EMAIL],
-              reply_to: values.email,
-              subject: "New project enquiry | NullVibe",
-              text,
-            }),
-            signal: AbortSignal.timeout(deliveryTimeoutMs),
-          });
-          if (!delivered.ok) {
-            await delivered.body?.cancel();
-            throw new Error("Email provider declined the message.");
-          }
-          const receipt = await delivered.json();
-          if (typeof receipt.id !== "string" || !receipt.id)
-            throw new Error("Email provider returned no delivery receipt.");
-        } catch {
-          throw new RequestError(
-            502,
-            "We could not confirm delivery right now. Your details are still available on this page; please try again later or use an alternative contact option.",
-          );
-        }
-        json(response, 200, {
-          ok: true,
-          message:
-            "Your enquiry has been accepted for delivery. Thank you for sharing your project.",
+      if (pathname.startsWith("/api/")) {
+        const result = await api({
+          pathname,
+          method: request.method,
+          headers: request.headers,
+          address: clientAddress(request, env.TRUST_PROXY === "1"),
+          readBody: (limit) => readJson(request, request.headers, limit),
         });
+        request.resume();
+        for (const [key, value] of Object.entries(result.headers))
+          response.setHeader(key, value);
+        json(response, result.status, result.payload, request.method);
         return;
       }
-      if (pathname.startsWith("/api/"))
-        throw new RequestError(404, "Endpoint not found.");
       if (!["GET", "HEAD"].includes(request.method)) {
         response.setHeader("Allow", "GET, HEAD");
         throw new RequestError(405, "Method not allowed.");

@@ -37,11 +37,22 @@ export function Contact() {
     if (services.some((s) => s.title === requested))
       setValues((v) => ({ ...v, service: requested }));
     const controller = new AbortController();
-    fetch("/api/health", { signal: controller.signal })
+    let active = true;
+    const timeout = setTimeout(() => controller.abort(), 4000);
+    fetch("/api/health", { signal: controller.signal, cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
-      .then((d) => setConfigured(d?.contactConfigured === true))
-      .catch(() => {});
-    return () => controller.abort();
+      .then((d) => {
+        if (active) setConfigured(d?.contactConfigured === true);
+      })
+      .catch(() => {
+        if (active) setConfigured(false);
+      })
+      .finally(() => clearTimeout(timeout));
+    return () => {
+      active = false;
+      clearTimeout(timeout);
+      controller.abort();
+    };
   }, []);
   useEffect(() => {
     if (state === "success" || state === "error") statusRef.current?.focus();
@@ -66,7 +77,7 @@ export function Contact() {
   }
   async function submit(e) {
     e.preventDefault();
-    if (state === "sending") return;
+    if (state === "sending" || configured !== true) return;
     setState("sending");
     setNotice("");
     try {
@@ -77,6 +88,8 @@ export function Contact() {
         signal: AbortSignal.timeout(15000),
       });
       const result = await response.json().catch(() => null);
+      if (response.status === 404 || response.status === 503)
+        setConfigured(false);
       if (!response.ok || !result?.ok)
         throw new Error(
           response.status === 503
@@ -86,7 +99,7 @@ export function Contact() {
               : result?.errors
                 ? Object.values(result.errors).join(" ")
                 : result?.message ||
-                "We couldn’t send your enquiry. Your details are still here; please try again or email us directly.",
+                  "We couldn’t send your enquiry. Your details are still here; please try again or email us directly.",
         );
       setState("success");
       setNotice(
@@ -173,12 +186,21 @@ export function Contact() {
               <noscript>
                 <p className="form-notice">
                   Online form submission requires JavaScript. Please email
-                  contact@nullvibe.tech to discuss your project.
+                  <a href={"mailto:" + contactEmail}>{contactEmail}</a> to
+                  discuss your project.
                 </p>
               </noscript>
               <div className="form-intro">
                 <h2>A little about your project.</h2>
                 <p>Fields marked * are required.</p>
+                {configured === false && (
+                  <p className="form-notice">
+                    Prepare a brief below, then open it in your email app and
+                    send it to{" "}
+                    <a href={"mailto:" + contactEmail}>{contactEmail}</a>. You
+                    can also save a copy.
+                  </p>
+                )}
               </div>
               <div className="form-row">
                 <label htmlFor="name">
@@ -283,24 +305,32 @@ export function Contact() {
                   <p>{notice}</p>
                 </div>
               )}
-              {configured === false && state !== "error" && (
-                <p className="form-notice">
-                  Online delivery is being connected. You can email{" "}
-                  <a href={"mailto:" + contactEmail}>{contactEmail}</a>{" "}
-                  directly, or prepare and save a brief here.
-                </p>
-              )}
               <div className="form-actions">
-                <button
-                  className="button"
-                  type="submit"
-                  disabled={state === "sending"}
-                >
-                  {state === "sending"
-                    ? "Sending your enquiry…"
-                    : "Send project enquiry"}
-                  <ArrowUpRight />
-                </button>
+                {configured === false ? (
+                  <a
+                    className="button"
+                    href={`mailto:${contactEmail}?subject=Project%20enquiry&body=${encodeURIComponent(brief())}`}
+                    onClick={(event) => {
+                      if (!event.currentTarget.closest("form").reportValidity())
+                        event.preventDefault();
+                    }}
+                  >
+                    Open email draft <Envelope />
+                  </a>
+                ) : (
+                  <button
+                    className="button"
+                    type="submit"
+                    disabled={configured === null || state === "sending"}
+                  >
+                    {configured === null
+                      ? "Preparing form…"
+                      : state === "sending"
+                        ? "Sending your enquiry…"
+                        : "Send project enquiry"}{" "}
+                    <ArrowUpRight />
+                  </button>
+                )}
                 <button
                   className="download-link"
                   type="button"
@@ -310,7 +340,7 @@ export function Contact() {
                   Save brief
                 </button>
               </div>
-              {state === "error" && (
+              {state === "error" && configured !== false && (
                 <a
                   className="text-link"
                   href={`mailto:${contactEmail}?subject=Project%20enquiry&body=${encodeURIComponent(brief())}`}

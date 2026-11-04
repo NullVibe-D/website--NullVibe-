@@ -1,6 +1,6 @@
 # NullVibe production handoff
 
-The website can run as a portable Node service. The frontend build is served from `dist/client`; `/api/contact` delivers enquiries through Resend when configured. It does not need a database. This repository is not evidence that a public deployment, a verified sending domain, a company mailbox, or a scheduling account exists.
+Production uses Vercel. This revision includes Vercel Functions for the API and also runs as a portable Node service. The frontend build is served from `dist/client`; `/api/contact` delivers enquiries through Resend when configured. It does not need a database. This repository is not evidence that a public deployment, a verified sending domain, a company mailbox, or a scheduling account exists.
 
 ## Build and run
 
@@ -28,11 +28,11 @@ The last command loads `.env.local` when present; use `.env.example` as the refe
 | `HOST`, `PORT`       | Server           | Listener address and port.                                                                                                                                                                                 |
 | `TRUST_PROXY`        | Server           | `1` only behind a single trusted proxy that overwrites incoming `X-Forwarded-For`. Defaults to disabled.                                                                                                   |
 
-The owner has confirmed `nullvibe.tech` and `contact@nullvibe.tech`. Real scheduling availability, the verified sending address, email provider credentials, final privacy wording and hosting still need to be connected before a public launch. Set public variables before building; changing them requires another build. Server secrets must never have a `VITE_` prefix. Follow [Resend's sending API documentation](https://resend.com/docs/api-reference/emails/send-email) for verified sender setup and account restrictions.
+The owner has confirmed `nullvibe.tech` and `contact@nullvibe.tech`. The domain is hosted. Verify mailbox routing, the sending domain and the production email variables separately; scheduling requires a real link if enabled. Set public variables before building; changing them requires another build. Server secrets must never have a `VITE_` prefix. Follow [Resend's sending API documentation](https://resend.com/docs/api-reference/emails/send-email) for verified sender setup and account restrictions.
 
 For local review, `npm run preview:production` runs the compiled site while removing `PUBLIC_SITE_URL` from the server-only environment so the matching localhost origin can submit test enquiries. Production `npm start` uses the configured canonical origin. The helper changes no saved domain settings and does not make unconfigured email delivery succeed. It uses real provider credentials if they are configured, so use the mocked Node tests to verify delivery without sending messages.
 
-Use HTTPS at the hosting platform or reverse proxy. Forward `/api/*` and page requests to this Node process, preserving the public Host and Origin headers. When `PUBLIC_SITE_URL` uses HTTPS, the server sets HSTS. The configured origin must exactly match the visitor-facing URL; redirect secondary domains to that origin. Do not expose the internal HTTP port directly when trusting a proxy.
+For the Vercel target, use vercel.json and the two api/ entries; HTML and hashed files stay static at the edge. On a portable Node host, use HTTPS at the platform or reverse proxy. Forward `/api/*` and page requests to this Node process, preserving the public Host and Origin headers. When `PUBLIC_SITE_URL` uses HTTPS, the server sets HSTS. The configured origin must exactly match the visitor-facing URL; redirect secondary domains to that origin. Do not expose the internal HTTP port directly when trusting a proxy.
 
 ## Routes, caching and browser protections
 

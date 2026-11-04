@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -119,28 +119,22 @@ function Preview({ kind }) {
 export function DemoCard({ demo }) {
   return (
     <article className="demo-card">
-      <Link
-        to={"/demos/" + demo.slug}
-        className="preview-link"
-        aria-label={"Explore " + demo.name + " demo"}
-      >
+      <div className="preview-link" aria-hidden="true">
         <Preview kind={demo.slug} />
-      </Link>
+      </div>
       <div className="demo-caption">
         <div>
           <small>{demo.category}</small>
           <h3>
-            <Link to={"/demos/" + demo.slug}>{demo.title}</Link>
+            <Link className="demo-title" to={"/demos/" + demo.slug}>
+              {demo.title}
+            </Link>
           </h3>
           <p>{demo.text}</p>
         </div>
-        <Link
-          to={"/demos/" + demo.slug}
-          className="round-link"
-          aria-label={"Open " + demo.name + " demo"}
-        >
+        <span className="round-link" aria-hidden="true">
           <ArrowUpRight size={24} />
-        </Link>
+        </span>
       </div>
       <span className="demo-label">Demo concept</span>
     </article>
@@ -257,6 +251,7 @@ function BookingDemo() {
 function CommerceDemo() {
   const [cart, setCart] = useState([0, 0, 0]);
   const [done, setDone] = useState(false);
+  const count = cart.reduce((a, b) => a + b, 0);
   const products = [
     ["Studio tote", 48],
     ["Everyday notebook", 18],
@@ -268,7 +263,7 @@ function CommerceDemo() {
         <h2>forma</h2>
         <span>
           <ShoppingBag />
-          {cart.reduce((a, b) => a + b, 0)} items
+          {count} {count === 1 ? "item" : "items"}
         </span>
       </div>
       <p>Everyday essentials. Sample products and USD prices.</p>
@@ -333,6 +328,11 @@ function AssistantDemo() {
     },
   ]);
   const [input, setInput] = useState("");
+  const log = useRef(null);
+  useEffect(() => {
+    if (messages.length > 1 && log.current)
+      log.current.scrollTop = log.current.scrollHeight;
+  }, [messages]);
   function send(value) {
     const q = value.trim();
     if (!q) return;
@@ -356,7 +356,14 @@ function AssistantDemo() {
         assist<span className="red">.</span>
       </h2>
       <p>Scripted demonstration · Not connected to a live AI service</p>
-      <div className="demo-chat" role="log" aria-live="polite">
+      <div
+        className="demo-chat"
+        ref={log}
+        role="log"
+        aria-label="Demo conversation"
+        aria-live="polite"
+        tabIndex={0}
+      >
         {messages.map((m, i) => (
           <div key={i} className={"message " + m.role}>
             <small>{m.role === "user" ? "YOU" : "ASSIST"}</small>
@@ -422,6 +429,12 @@ export function DemoDetail({ slug }) {
           </div>
           <span className="demo-label">Sample data · No live transactions</span>
         </div>
+        <noscript>
+          <p className="demo-disclaimer">
+            Enable JavaScript to try this interactive demo. The project
+            description and navigation remain available.
+          </p>
+        </noscript>
         {slug === "booking" ? (
           <BookingDemo />
         ) : slug === "commerce" ? (

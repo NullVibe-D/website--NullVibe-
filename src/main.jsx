@@ -1,21 +1,12 @@
-import React from "react";
-import { createRoot, hydrateRoot } from "react-dom/client";
-import { App } from "./App.jsx";
 import "@fontsource-variable/manrope";
 import "./styles.css";
-import { getPageMeta } from "./data.js";
-const path = window.location.pathname.replace(/\/$/, "") || "/";
-const node = document.getElementById("root");
-const app = (
-  <React.StrictMode>
-    <App path={path} />
-  </React.StrictMode>
-);
-if (node.hasChildNodes()) hydrateRoot(node, app);
-else createRoot(node).render(app);
-const meta = getPageMeta(path);
-document.title = meta.title + " | NullVibe";
-document
-  .querySelector('meta[name="description"]')
-  ?.setAttribute("content", meta.description);
 import "./upgrade.css";
+import { enhanceNavigation } from "./navigation.js";
+
+// Published pages already contain their headings, links and navigation.
+// Only the form and demo pages receive an additional interactive entry.
+if (import.meta.env.DEV && !document.getElementById("root").hasChildNodes()) {
+  import("./dev-app.jsx").then(({ renderApp }) => renderApp());
+} else {
+  enhanceNavigation();
+}
